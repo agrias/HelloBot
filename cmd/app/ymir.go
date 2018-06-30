@@ -1,6 +1,9 @@
 package app
 
-import "YmirBot/proto"
+import (
+	"YmirBot/proto"
+	"YmirBot/cmd/server"
+)
 
 type Bot interface {
 	Start()
@@ -8,6 +11,12 @@ type Bot interface {
 
 type ymirBot struct {
 	Server proto.BotServer
-	Client proto.BotClient
 }
 
+func (b *ymirBot) Start() {
+	b.Server = server.NewBotServer()
+}
+
+func NewYmirBot() Bot {
+	return &ymirBot{}
+}
