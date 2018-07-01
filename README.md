@@ -1,1 +1,1 @@
-protoc -I proto/ proto/ymir_server.proto --go_out=plugins=grpc:proto
+> protoc -I proto/ proto/ymir_server.proto --go_out=plugins=grpc:proto
