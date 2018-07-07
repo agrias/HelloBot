@@ -5,8 +5,8 @@ import (
 	"context"
 	"net"
 	"fmt"
-	"log"
 	"google.golang.org/grpc"
+	log "github.com/sirupsen/logrus"
 )
 
 /*
@@ -21,14 +21,14 @@ type botServer struct {
 
 func (s *botServer) GetResponse(context context.Context, req *proto.BotRequest) (*proto.BotResponse, error) {
 
-	fmt.Println("GRPC request received...")
+	log.Info("GRPC request received...")
 
 	return &proto.BotResponse{Id: req.Id, Text: "Hello World"}, nil
 }
 
 func Start(server *botServer) {
 
-	fmt.Println("Starting GRPC server...")
+	log.Info("Starting GRPC server...")
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", 9095))
 	if err != nil {
