@@ -50,7 +50,10 @@ func GetClient() proto.BotClient {
 func (b *discordBotClient) Run() {
 
 	b.Session.AddHandler(b.BotState.onMessage)
-	b.Session.Open()
+	err := b.Session.Open()
+	if err != nil {
+		log.Error("Error opening discord session: %s", err)
+	}
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
