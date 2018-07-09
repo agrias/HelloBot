@@ -6,10 +6,10 @@ import (
 	"syscall"
 	"os/signal"
 	"YmirBot/proto"
-	"log"
 	"google.golang.org/grpc"
 	"context"
 	"github.com/satori/go.uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 type discordBotClient struct {
@@ -50,7 +50,10 @@ func GetClient() proto.BotClient {
 func (b *discordBotClient) Run() {
 
 	b.Session.AddHandler(b.BotState.onMessage)
-	b.Session.Open()
+	err := b.Session.Open()
+	if err != nil {
+		log.Error("Error opening discord session: %s", err)
+	}
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
@@ -65,7 +68,7 @@ type BotState struct {
 
 func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	log.Printf("Message received: %s %s %s\n",m.ChannelID, m.Content, m.Author)
+	log.Info("Message received: %s %s %s\n", m.ChannelID, m.Content, m.Author)
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -77,7 +80,7 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	resp, err := b.Client.GetResponse(context.TODO(), &proto.BotRequest{Id: uuid.NewV1().String(),Text: m.Content})
 	if err != nil {
-		panic(err)
+		log.Errorln("Problem getting response from Ymir Server")
 	}
 
 	s.ChannelMessageSend(m.ChannelID, resp.Text)
