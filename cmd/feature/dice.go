@@ -7,8 +7,6 @@ import (
 	"strings"
 	"strconv"
 	"YmirBot/cmd/db"
-	"encoding/json"
-	"time"
 )
 
 type Dice struct {
@@ -55,48 +53,20 @@ func RollDiceModifierWithHistory(numDice int64, numSides int64, modifier int64, 
 
 	total := big.NewInt(0)
 
+	var roll_values []*big.Int
+
 	for _, die := range dice {
 		roll_result := die.Roll()
 		total.Add(total, roll_result)
+		roll_values = append(roll_values, roll_result)
+	}
 
-		if numSides == int64(20) {
-			key := name+"/20"
-			data, err := database.Get(key)
-			if err != nil {
-				roll_results := make([]RollResult, 1)
-				roll_results[0] = RollResult{time.Now(), roll_result.Int64()}
-				new_record := PersonHistory{name, roll_results}
-
-				value, err := json.Marshal(new_record)
-				if err != nil {
-					log.Error("Could not marshall data to DB: ", err)
-				}
-
-				database.Put(key, value)
-			} else {
-				var previous_record PersonHistory
-				err := json.Unmarshal(data, previous_record)
-				if err != nil {
-					log.Error("Could not unmarshal data from DB: ", err)
-				}
-
-				previous_record.RollResults = append(previous_record.RollResults, RollResult{time.Now(), roll_result.Int64()})
-				value, err := json.Marshal(previous_record)
-				if err != nil {
-					log.Error("Could not marshall data to DB: ", err)
-				}
-
-				err = database.Put(key, value)
-				if err != nil {
-					log.Error("Issue with DB: ", err)
-				}
-			}
-		}
+	if numSides == int64(20) {
+		ModifyDiceHistory(roll_values, database, name)
 	}
 
 	return total.Add(total, big.NewInt(modifier))
 }
-
 
 func ParseDiceString(text string) (int64, int64, int64) {
 	splits := strings.Split(text, " ")

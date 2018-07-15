@@ -68,7 +68,7 @@ type BotState struct {
 
 func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	log.Info("Message received: %s %s %s\n", m.ChannelID, m.Content, m.Author)
+	log.Infof("Message received: %s %s %s\n", m.ChannelID, m.Content, m.Author)
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
