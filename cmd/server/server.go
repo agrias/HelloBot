@@ -59,7 +59,7 @@ func Start(server *botServer) {
 
 func NewBotServer() proto.BotServer{
 
-	cache := db.NewDiskvCache("G:\\dev\\GOPATH\\src\\YmirBot\\app-data")
+	cache := db.NewDiskvCache("/app-data")
 	server := &botServer{cache}
 
 	go Start(server)
