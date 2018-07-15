@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
+	"strings"
 )
 
 type discordBotClient struct {
@@ -78,10 +79,11 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	resp, err := b.Client.GetResponse(context.TODO(), &proto.BotRequest{Id: uuid.NewV1().String(), Text: m.Content, Name: m.Author.ID})
-	if err != nil {
-		log.Errorln("Problem getting response from Ymir Server")
+	if strings.HasPrefix(m.Content, "!") {
+		resp, err := b.Client.GetResponse(context.TODO(), &proto.BotRequest{Id: uuid.NewV1().String(), Text: m.Content, Name: m.Author.ID})
+		if err != nil {
+			log.Errorln("Problem getting response from Ymir Server")
+		}
+		s.ChannelMessageSend(m.ChannelID, resp.Text)
 	}
-
-	s.ChannelMessageSend(m.ChannelID, resp.Text)
 }
