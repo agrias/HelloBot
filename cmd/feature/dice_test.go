@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"fmt"
 	"strconv"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDice_Roll(t *testing.T) {
@@ -25,8 +26,18 @@ func TestDice_Roll(t *testing.T) {
 }
 
 func TestRollDice(t *testing.T) {
-
 	for i:= 0; i < 100; i++ {
 		fmt.Println(RollDice(100, 20))
 	}
+}
+
+func t3(one, two, three interface{}) []interface{} {
+	return []interface{}{one, two, three}
+}
+
+func TestParseDiceString(t *testing.T) {
+	string1 := "!roll 1d4"
+	string2 := "!roll 1d4+4"
+	assert.Equal(t, t3(ParseDiceString(string1)), t3(int64(1), int64(4), int64(0)))
+	assert.Equal(t, t3(ParseDiceString(string2)), t3(int64(1), int64(4), int64(4)))
 }

@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	log "github.com/sirupsen/logrus"
+	"YmirBot/cmd/db"
+	"strings"
+	"YmirBot/cmd/feature"
 )
 
 /*
@@ -16,14 +19,24 @@ type BotServer interface {
 */
 
 type botServer struct {
-
+	cache db.Database
 }
 
 func (s *botServer) GetResponse(context context.Context, req *proto.BotRequest) (*proto.BotResponse, error) {
 
 	log.Info("GRPC request received...")
 
-	return &proto.BotResponse{Id: req.Id, Text: "Hello World"}, nil
+	response := &proto.BotResponse{Id: req.Id, Text: "Hello "+req.Name}
+
+	if strings.HasPrefix(req.Text, "!roll") {
+		num_dice, sides, modifier := feature.ParseDiceString(req.Text)
+
+		result := feature.RollDiceModifierWithHistory(num_dice, sides, modifier, s.cache, req.Name)
+
+		response.Text = result.String()
+	}
+
+	return response, nil
 }
 
 func Start(server *botServer) {
@@ -44,7 +57,8 @@ func Start(server *botServer) {
 
 func NewBotServer() proto.BotServer{
 
-	server := &botServer{}
+	cache := db.NewDiskvCache("/app-data")
+	server := &botServer{cache}
 
 	go Start(server)
 
