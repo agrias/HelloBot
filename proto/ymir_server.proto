@@ -8,13 +8,12 @@ service Bot {
 }
 
 message BotRequest {
-
     string id = 1;
     string text = 2;
+    string name = 3;
 }
 
 message BotResponse {
-
     string id = 1;
     string text = 2;
 }
