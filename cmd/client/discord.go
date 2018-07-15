@@ -68,7 +68,7 @@ type BotState struct {
 
 func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	log.Info("Message received: %s %s %s\n", m.ChannelID, m.Content, m.Author)
+	log.Infof("Message received: %s %s %s\n", m.ChannelID, m.Content, m.Author)
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -78,7 +78,7 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	resp, err := b.Client.GetResponse(context.TODO(), &proto.BotRequest{Id: uuid.NewV1().String(),Text: m.Content})
+	resp, err := b.Client.GetResponse(context.TODO(), &proto.BotRequest{Id: uuid.NewV1().String(), Text: m.Content, Name: m.Author.ID})
 	if err != nil {
 		log.Errorln("Problem getting response from Ymir Server")
 	}
