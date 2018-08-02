@@ -34,6 +34,8 @@ func (s *botServer) GetResponse(context context.Context, req *proto.BotRequest) 
 		result := feature.RollDiceModifierWithHistory(num_dice, sides, modifier, s.cache, req.Name)
 
 		response.Text = "<@"+req.Name+"> "+result.String()
+	} else if strings.HasPrefix(req.Text, "!group") {
+		response.Text = feature.ProcessGroupCommand(req, s.cache)
 	} else if strings.HasPrefix(req.Text, "!stats") {
 		response.Text = feature.GetDiceHistoryStats(s.cache, req.Name)
 	}
