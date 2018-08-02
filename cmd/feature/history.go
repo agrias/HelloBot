@@ -1,13 +1,19 @@
 package feature
 
 import (
-	"time"
-	"math/big"
 	"YmirBot/cmd/db"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
+	"math/big"
+	"sort"
 	"strconv"
+	"strings"
+	"time"
 )
+
+// ----------------------------------------------------------------------------
+// Dice statistics history.
+// ----------------------------------------------------------------------------
 
 type PersonHistory struct {
 	Name string	`json:"name"`
@@ -117,4 +123,105 @@ func GetDiceHistoryStats(database db.Database, name string) (string) {
 
 		return string(json_text)
 	}
+}
+
+// ----------------------------------------------------------------------------
+// Group roll history.
+// ----------------------------------------------------------------------------
+
+type GroupRoll struct {
+	GroupRollMap map[string][]string `json:"group_roll_map"`
+}
+
+func GroupStart(database db.Database) string {
+	value, err := json.Marshal(GroupRoll{make(map[string][]string)})
+	
+	if err != nil {
+		log.Error("Could not marshall data to DB: ", err)
+	}
+	
+	database.Put("group_roll", value)
+	return "Beginning recording of a group of rolls."
+}
+	
+func GroupSetRoll(name string, rollNum *big.Int, database db.Database) string {
+	result := "recorded"
+
+	data, err := database.Get("group_roll")
+	if err != nil {
+		return "Not currently recording group rolls."
+	}
+	
+	var groupRollStruct GroupRoll
+	err = json.Unmarshal(data, &groupRollStruct)
+	if err != nil {
+		log.Error("Could not unmarshal data from DB: ", err)
+	}
+	groupRollMap := groupRollStruct.GroupRollMap
+	
+	bucket := ""
+	for k, v := range groupRollMap {
+		for i, stored := range v {
+			if (stored == name) {
+				bucket = k
+
+				v[i] = v[len(v) - 1]
+				groupRollMap[k] = v[:len(v) - 1]
+			
+				result = "overriden"
+			}
+		}	
+    }
+	if (bucket != "" && len(groupRollMap[bucket]) == 0) {
+		delete(groupRollMap, bucket)
+	}
+	
+	stringRollNum := strconv.FormatInt(rollNum.Int64(), 10)
+	if (groupRollMap[stringRollNum] == nil) {
+		groupRollMap[stringRollNum] = []string{name}
+	} else {
+		groupRollMap[stringRollNum] = append(groupRollMap[stringRollNum], name)
+	}
+	
+	value, err := json.Marshal(groupRollStruct)
+	if err != nil {
+		log.Error("Could not marshall data to DB: ", err)
+	}
+
+	err = database.Put("group_roll", value)
+	if err != nil {
+		log.Error("Issue with DB: ", err)
+	}
+	
+	return result
+}
+
+func GroupEnd(database db.Database) string {
+	data, err := database.Get("group_roll")
+
+	if err != nil {
+		return "Not currently recording group rolls."
+	}
+
+	var currentGroupRoll GroupRoll
+	err = json.Unmarshal(data, &currentGroupRoll)
+	
+	if err != nil {
+		return "Not currently recording group rolls."
+	}
+	
+	var rolledNums []string
+    for k := range currentGroupRoll.GroupRollMap {
+        rolledNums = append(rolledNums, k)
+    }
+	sort.Sort(sort.Reverse(sort.StringSlice(rolledNums)))
+
+	response := "Group roll results:\n"
+	for _, k := range rolledNums {
+		response += "\t" + k + ":\t\t\t" +
+			strings.Join(currentGroupRoll.GroupRollMap[k], ", ") + "\n"
+	}
+	
+	database.Put("group_roll", nil)
+	return response
 }

@@ -34,6 +34,8 @@ func (s *botServer) GetResponse(context context.Context, req *proto.BotRequest) 
 		result := feature.RollDiceModifierWithHistory(num_dice, sides, modifier, s.cache, req.Name)
 
 		response.Text = "<@"+req.Name+"> "+result.String()
+	} else if strings.HasPrefix(req.Text, "!group") {
+		response.Text = feature.ProcessGroupCommand(req, s.cache)
 	} else if strings.HasPrefix(req.Text, "!stats") {
 		response.Text = feature.GetDiceHistoryStats(s.cache, req.Name)
 	}
@@ -59,7 +61,7 @@ func Start(server *botServer) {
 
 func NewBotServer() proto.BotServer{
 
-	cache := db.NewDiskvCache("G:\\dev\\GOPATH\\src\\YmirBot\\app-data")
+	cache := db.NewDiskvCache("/app-data")
 	server := &botServer{cache}
 
 	go Start(server)
