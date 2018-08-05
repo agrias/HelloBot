@@ -30,8 +30,14 @@ func ProcessGroupCommand(req *proto.BotRequest, database db.Database) string {
 			if !err {
 				return "Error parsing number for set command."
 			}
-			
-			name := "<@" + req.Name + ">"
+
+			var name string
+
+			if len(splits) > 3 {
+				name = splits[3]
+			} else {
+				name = "<@" + req.Name + ">"
+			}
 			result := GroupSetRoll(name, rollAmount, database)
 			response = name + " -- Roll " + result
 		}
