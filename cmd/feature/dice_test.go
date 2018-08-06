@@ -41,3 +41,14 @@ func TestParseDiceString(t *testing.T) {
 	assert.Equal(t, t3(ParseDiceString(string1)), t3(int64(1), int64(4), int64(0)))
 	assert.Equal(t, t3(ParseDiceString(string2)), t3(int64(1), int64(4), int64(4)))
 }
+
+func TestFormatRollResults(t *testing.T) {
+	array := []*big.Int{big.NewInt(20), big.NewInt(2), big.NewInt(3)}
+	name := "test"
+	request := "!roll 1d20"
+
+	assert.Equal(t, FormatRollResults(array, name, request), "<@test> \n:star2:   :star2:   **NATURAL 20**   :star2:   :star2:\n20 + *2* = **3**")
+
+	request = "!roll 1d20+1"
+	assert.Equal(t, FormatRollResults(array, name, request), "<@test> \n:star2:   :star2:   **NATURAL 20**   :star2:   :star2:\n20 + *2* = **3**")
+}

@@ -117,7 +117,7 @@ func FormatRollResults(rollResults []*big.Int, name string, request string) stri
 	
 	// Extra formatting for natural 1s and 20s.
 	splits := strings.Split(request, " ")
-	if (splits[1] == "1d20") {
+	if (strings.HasPrefix(splits[1], "1d20")) {
 		if (rollResults[0].Cmp(big.NewInt(20)) == 0) {
 			displayString = displayString + "\n:star2:   :star2:   **NATURAL 20**   :star2:   :star2:\n"
 		} else if (rollResults[0].Cmp(big.NewInt(1)) == 0) {
