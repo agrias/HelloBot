@@ -45,10 +45,10 @@ func ProcessGroupCommand(req *proto.BotRequest, database db.Database) string {
 	case "roll":
 		if (len(splits) > 2) {
 			num_dice, sides, modifier := ParseDiceString(splits[1] + " " + splits[2])
-			rollAmount := RollDiceModifier(num_dice, sides, modifier)
+			rolls := RollDiceModifier(num_dice, sides, modifier)
 
 			name := "<@" + req.Name + ">"
-			result := GroupSetRoll(name, rollAmount, database)
+			result := GroupSetRoll(name, rolls[len(rolls) - 1], database)
 			response = name + " -- Roll " + result
 		}
 	

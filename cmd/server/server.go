@@ -30,10 +30,9 @@ func (s *botServer) GetResponse(context context.Context, req *proto.BotRequest) 
 
 	if strings.HasPrefix(req.Text, "!roll") {
 		num_dice, sides, modifier := feature.ParseDiceString(req.Text)
-
-		result := feature.RollDiceModifierWithHistory(num_dice, sides, modifier, s.cache, req.Name)
-
-		response.Text = "<@"+req.Name+"> "+result.String()
+		rollResults := feature.RollDiceModifierWithHistory(num_dice, sides, modifier, s.cache, req.Name)
+		
+		response.Text = feature.FormatRollResults(rollResults, req.Name, req.Text)
 	} else if strings.HasPrefix(req.Text, "!group") {
 		response.Text = feature.ProcessGroupCommand(req, s.cache)
 	} else if strings.HasPrefix(req.Text, "!stats") {
