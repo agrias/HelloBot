@@ -25,15 +25,15 @@ func NewDiscordBot() YmirClient {
 
 	log.Println("Creating client...")
 
+	client := GetClient()
+	context := &discordBotContext{}
+	context.InitializeEnv()
+
 	discord, err := discordgo.New("Bot "+viper.GetString("token"))
 	if (err != nil) {
 		log.Fatalln(err)
 		panic(err)
 	}
-
-	client := GetClient()
-	context := &discordBotContext{}
-	context.InitializeEnv()
 
 	return &discordBotClient{discord, client, &BotState{Client: client, Context: context}}
 }
