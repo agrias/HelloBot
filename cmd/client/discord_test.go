@@ -1,8 +1,10 @@
 package client
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestNewDiscordBot(t *testing.T) {
 	bot := NewDiscordBot()
-	bot.Run()
+	go bot.Run()
 }

@@ -11,6 +11,8 @@ import (
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"strings"
+	"YmirBot/pkg/discord"
+	"github.com/spf13/viper"
 )
 
 type discordBotClient struct {
@@ -23,15 +25,17 @@ func NewDiscordBot() YmirClient {
 
 	log.Println("Creating client...")
 
-	discord, err := discordgo.New("Bot "+"")
+	discord, err := discordgo.New("Bot "+viper.GetString("token"))
 	if (err != nil) {
 		log.Fatalln(err)
 		panic(err)
 	}
 
 	client := GetClient()
+	context := &discordBotContext{}
+	context.InitializeEnv()
 
-	return &discordBotClient{discord, client, &BotState{client}}
+	return &discordBotClient{discord, client, &BotState{Client: client, Context: context}}
 }
 
 func GetClient() proto.BotClient {
@@ -51,6 +55,8 @@ func GetClient() proto.BotClient {
 func (b *discordBotClient) Run() {
 
 	b.Session.AddHandler(b.BotState.onMessage)
+	b.Session.AddHandler(b.BotState.onVoiceStateUpdate)
+
 	err := b.Session.Open()
 	if err != nil {
 		log.Error("Error opening discord session: %s", err)
@@ -63,8 +69,18 @@ func (b *discordBotClient) Run() {
 	b.Session.Close()
 }
 
+type discordBotContext struct {
+
+}
+
+func (context *discordBotContext) InitializeEnv() {
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("discord")
+}
+
 type BotState struct {
 	Client proto.BotClient
+	Context *discordBotContext
 }
 
 func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -80,10 +96,25 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.HasPrefix(m.Content, "!") {
-		resp, err := b.Client.GetResponse(context.TODO(), &proto.BotRequest{Id: uuid.NewV1().String(), Text: m.Content, Name: m.Author.ID})
+		user_meta := discord.GetUser(s, m.Author.ID)
+
+		log.Infof("User meta: %s, %s, %s, %s\n", user_meta.ID, user_meta.Username, user_meta.Email, user_meta.Discriminator)
+
+		resp, err := b.Client.GetResponse(context.TODO(), &proto.BotRequest{Id: uuid.NewV1().String(), Text: m.Content, Name: user_meta.Username})
+
 		if err != nil {
 			log.Errorln("Problem getting response from Ymir Server")
 		}
 		s.ChannelMessageSend(m.ChannelID, resp.Text)
 	}
 }
+
+func (b *BotState) onVoiceStateUpdate(s *discordgo.Session, v *discordgo.VoiceStateUpdate) {
+
+	log.Infof("VoiceStateUpdate received: %s, %s, %s\n", v.ChannelID, v.UserID, v.SessionID)
+
+	channel_meta := discord.GetChannel(s, v.ChannelID)
+
+	log.Infof("Channel information: %s, %s, %s\n", channel_meta.ID, channel_meta.Name, channel_meta.ParentID)
+}
+

@@ -210,16 +210,23 @@ func GroupEnd(database db.Database) string {
 		return "Not currently recording group rolls."
 	}
 	
-	var rolledNums []string
+	var rolledNums []int
     for k := range currentGroupRoll.GroupRollMap {
-        rolledNums = append(rolledNums, k)
+		val, err := strconv.Atoi(k)
+		
+		if (err == nil) {
+			rolledNums = append(rolledNums, val)
+		} else {
+			log.Error("Issue with converting string to number when ending group: ", err)
+		}		
     }
-	sort.Sort(sort.Reverse(sort.StringSlice(rolledNums)))
+	sort.Sort(sort.Reverse(sort.IntSlice(rolledNums)))
 
 	response := "Group roll results:\n"
 	for _, k := range rolledNums {
-		response += "\t" + k + ":\t\t\t" +
-			strings.Join(currentGroupRoll.GroupRollMap[k], ", ") + "\n"
+		stringVal := strconv.Itoa(k)
+		response += "\t" + stringVal + ":\t\t\t" +
+			strings.Join(currentGroupRoll.GroupRollMap[stringVal], ", ") + "\n"
 	}
 	
 	database.Put("group_roll", nil)
