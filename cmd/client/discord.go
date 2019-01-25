@@ -87,3 +87,8 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, resp.Text)
 	}
 }
+
+func (b *BotState) onChannelJoin(s *discordgo.Session, v *discordgo.VoiceState) {
+
+	log.Infof("Connect received: %s, %s, %s\n", v.ChannelID, v.UserID, v.SessionID)
+}
