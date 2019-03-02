@@ -1,4 +1,4 @@
-package feature
+package dnd
 
 import (
 	"math/big"
@@ -112,7 +112,7 @@ func StringToInt64(text string) (int64) {
 }
 
 func FormatRollResults(rollResults []*big.Int, name string, request string) string {
-	displayString := "<@" + name + "> "
+	displayString := "@" + name + " "
 	numResults := len(rollResults)
 	
 	// Extra formatting for natural 1s and 20s.

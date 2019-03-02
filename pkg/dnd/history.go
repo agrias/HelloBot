@@ -1,4 +1,4 @@
-package feature
+package dnd
 
 import (
 	"YmirBot/cmd/db"

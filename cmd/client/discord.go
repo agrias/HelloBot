@@ -15,6 +15,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+const DND_CHANNEL = 328682308054024193
+const YMIR_ID = "<@462698059701420052>"
+
 type discordBotClient struct {
 	Session *discordgo.Session
 	Client proto.BotClient
@@ -95,6 +98,22 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if m.Content == YMIR_ID {
+		log.Infof("Joining channel: %s", m.ChannelID)
+
+		//user_meta := discord.GetUser(s, m.Author.ID)
+		channel_meta := discord.GetChannel(s, m.ChannelID)
+
+		/*
+		for k, v := range s.VoiceConnections {
+			log.Infof("Voice information: %s, %s", k, v)
+		}
+		*/
+
+		s.ChannelVoiceJoin(channel_meta.GuildID, "169616221669425153", false, false)
+		return
+	}
+
 	if strings.HasPrefix(m.Content, "!") {
 		user_meta := discord.GetUser(s, m.Author.ID)
 
@@ -105,7 +124,8 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			log.Errorln("Problem getting response from Ymir Server")
 		}
-		s.ChannelMessageSend(m.ChannelID, resp.Text)
+		//s.ChannelMessageSend(m.ChannelID, resp.Text)
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: resp.Text, Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 	}
 }
 
