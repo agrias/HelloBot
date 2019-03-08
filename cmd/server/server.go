@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"YmirBot/cmd/db"
 	"strings"
+	"YmirBot/pkg/dnd"
 	"YmirBot/cmd/feature"
 )
 
@@ -18,8 +19,10 @@ type BotServer interface {
 }
 */
 
+
 type botServer struct {
 	cache db.Database
+	handlers []feature.FeatureHandler
 }
 
 func (s *botServer) GetResponse(context context.Context, req *proto.BotRequest) (*proto.BotResponse, error) {
@@ -28,15 +31,22 @@ func (s *botServer) GetResponse(context context.Context, req *proto.BotRequest) 
 
 	response := &proto.BotResponse{Id: req.Id, Text: "Hello "+req.Name}
 
+	for _, handler := range s.handlers {
+
+		if handler.Filter(req.Text) {
+			return handler.Handle(req), nil
+		}
+	}
+
 	if strings.HasPrefix(req.Text, "!roll") {
-		num_dice, sides, modifier := feature.ParseDiceString(req.Text)
-		rollResults := feature.RollDiceModifierWithHistory(num_dice, sides, modifier, s.cache, req.Name)
+		num_dice, sides, modifier := dnd.ParseDiceString(req.Text)
+		rollResults := dnd.RollDiceModifierWithHistory(num_dice, sides, modifier, s.cache, req.Name)
 		
-		response.Text = feature.FormatRollResults(rollResults, req.Name, req.Text)
+		response.Text = dnd.FormatRollResults(rollResults, req.Name, req.Text)
 	} else if strings.HasPrefix(req.Text, "!group") {
-		response.Text = feature.ProcessGroupCommand(req, s.cache)
+		response.Text = dnd.ProcessGroupCommand(req, s.cache)
 	} else if strings.HasPrefix(req.Text, "!stats") {
-		response.Text = feature.GetDiceHistoryStats(s.cache, req.Name)
+		response.Text = dnd.GetDiceHistoryStats(s.cache, req.Name)
 	}
 
 	return response, nil
@@ -61,7 +71,12 @@ func Start(server *botServer) {
 func NewBotServer() proto.BotServer{
 
 	cache := db.NewDiskvCache("/app-data")
-	server := &botServer{cache}
+	handlers := []feature.FeatureHandler{}
+
+	handlers = append(handlers, &feature.TimeFeatureHandler{})
+	handlers = append(handlers, &feature.HelpFeatureHandler{handlers})
+
+	server := &botServer{cache: cache, handlers: handlers}
 
 	go Start(server)
 

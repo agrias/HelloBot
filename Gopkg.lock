@@ -2,6 +2,24 @@
 
 
 [[projects]]
+  name = "github.com/PuerkitoBio/goquery"
+  packages = ["."]
+  revision = "2d2796f41742ece03e8086188fa4db16a3a0b458"
+  version = "v1.5.0"
+
+[[projects]]
+  name = "github.com/anaskhan96/soup"
+  packages = ["."]
+  revision = "50123c340ba50505026229a3fb7e0bc5343e7e4d"
+  version = "v1.1.1"
+
+[[projects]]
+  name = "github.com/andybalholm/cascadia"
+  packages = ["."]
+  revision = "901648c87902174f774fac311d7f176f8647bdaa"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/bwmarrin/discordgo"
   packages = ["."]
   revision = "4a33b9bc7c56cfdb9bb244e33e83cb3941fe2bdc"
@@ -38,10 +56,47 @@
   revision = "e89373fe6b4a7413d7acd6da1725b83ef713e6e4"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/gopherjs/gopherjs"
+  packages = ["js"]
+  revision = "d547d1d9531ed93dbdebcbff7f83e7c876a1e0ee"
+
+[[projects]]
+  name = "github.com/gopherjs/gopherwasm"
+  packages = ["js"]
+  revision = "f5a54963d451109f20622db5b6a055569ec6b4c6"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/gorilla/websocket"
   packages = ["."]
   revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
   version = "v1.2.0"
+
+[[projects]]
+  name = "github.com/hajimehoshi/go-mp3"
+  packages = [
+    ".",
+    "internal/bits",
+    "internal/consts",
+    "internal/frame",
+    "internal/frameheader",
+    "internal/huffman",
+    "internal/imdct",
+    "internal/maindata",
+    "internal/sideinfo"
+  ]
+  revision = "90191ee719ddc192865cd96bdc8013ef1ed6dbea"
+  version = "v0.1.1"
+
+[[projects]]
+  name = "github.com/hajimehoshi/oto"
+  packages = [
+    ".",
+    "internal/mux"
+  ]
+  revision = "5159380e3fae72c2532757a20446f10acfd96170"
+  version = "v0.3.0"
 
 [[projects]]
   name = "github.com/hashicorp/hcl"
@@ -59,6 +114,18 @@
   ]
   revision = "8cb6e5b959231cc1119e43259c4a608f9c51a241"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/jonas747/dca"
+  packages = ["."]
+  revision = "bf5d11669cdb8be779296c65addb0c82b8d43391"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/jonas747/ogg"
+  packages = ["."]
+  revision = "b4f6f4cf3757a3bf88eae9222045b99b9d76d8ca"
 
 [[projects]]
   name = "github.com/magiconair/properties"
@@ -95,6 +162,12 @@
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/rylio/ytdl"
+  packages = ["."]
+  revision = "5c8ee71b4175be285baaff66147458254884f748"
 
 [[projects]]
   name = "github.com/satori/go.uuid"
@@ -161,9 +234,50 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/exp"
+  packages = [
+    "shiny/driver/gldriver",
+    "shiny/driver/internal/drawer",
+    "shiny/driver/internal/errscreen",
+    "shiny/driver/internal/event",
+    "shiny/driver/internal/lifecycler",
+    "shiny/driver/internal/win32",
+    "shiny/driver/internal/x11key",
+    "shiny/screen"
+  ]
+  revision = "01c40f57f5f67e0faa42df53dbcfb58f5a65bb4e"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/image"
+  packages = ["math/f64"]
+  revision = "0694c2d4d067f97ebef574d63a763ee8ab559da7"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/mobile"
+  packages = [
+    "app",
+    "app/internal/callfn",
+    "event/key",
+    "event/lifecycle",
+    "event/mouse",
+    "event/paint",
+    "event/size",
+    "event/touch",
+    "geom",
+    "gl",
+    "internal/mobileinit"
+  ]
+  revision = "3ac37b7f944d1e40dbb52d47b8a5676582b8ae30"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "context",
+    "html",
+    "html/atom",
     "http/httpguts",
     "http2",
     "http2/hpack",
@@ -250,6 +364,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2c6f6df51e6e3ec680b88167e58994a9db0480ccc568df259ba3f742b6bffd5e"
+  inputs-digest = "c826f17c4d10af4cecd8d21d3e8996091e1b483f6f2ae56fdd07b44d5f1272c1"
   solver-name = "gps-cdcl"
   solver-version = 1
