@@ -13,6 +13,8 @@ import (
 	"strings"
 	"YmirBot/pkg/discord"
 	"github.com/spf13/viper"
+	"YmirBot/pkg/youtube"
+	"fmt"
 )
 
 const DND_CHANNEL = 328682308054024193
@@ -38,7 +40,7 @@ func NewDiscordBot() YmirClient {
 		panic(err)
 	}
 
-	return &discordBotClient{discord, client, &BotState{Client: client, Context: context}}
+	return &discordBotClient{discord, client, &BotState{Client: client, Context: context, Youtube: youtube.NewYoutubeService()}}
 }
 
 func GetClient() proto.BotClient {
@@ -83,6 +85,7 @@ func (context *discordBotContext) InitializeEnv() {
 
 type BotState struct {
 	Client proto.BotClient
+	Youtube *youtube.YoutubeService
 	Context *discordBotContext
 }
 
@@ -98,11 +101,20 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if m.Content == YMIR_ID {
+	if strings.HasPrefix(m.Content, "!play") {
 		log.Infof("Joining channel: %s", m.ChannelID)
 
 		//user_meta := discord.GetUser(s, m.Author.ID)
 		channel_meta := discord.GetChannel(s, m.ChannelID)
+		guild_meta := discord.GetGuild(s, channel_meta.GuildID)
+
+		var channel_id string
+
+		for _, people := range guild_meta.VoiceStates {
+			if m.Author.ID == people.UserID {
+				channel_id = people.ChannelID
+			}
+		}
 
 		/*
 		for k, v := range s.VoiceConnections {
@@ -110,7 +122,30 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		*/
 
-		s.ChannelVoiceJoin(channel_meta.GuildID, "169616221669425153", false, false)
+		query := strings.TrimPrefix(m.Content, "!play")
+
+		s.ChannelVoiceJoin(channel_meta.GuildID, channel_id, false, false)
+
+		openchannels := s.VoiceConnections
+
+		youtube_url := "https://www.youtube.com%s"
+
+		results := youtube.GetVideosFromSearch(query)
+
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Playing \""+results[0].Title+"\"...", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+
+		for _, channel := range openchannels {
+			if channel.ChannelID == channel_id {
+				log.Infof("Starting song...")
+				err := b.Youtube.PlayYoutubeVideo(channel, fmt.Sprintf(youtube_url, results[0].Url))
+				if err != nil {
+					s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Voice stream is busy...", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+					return
+				}
+				log.Infof("Finishing song...")
+			}
+		}
+
 		return
 	}
 
@@ -127,6 +162,8 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		//s.ChannelMessageSend(m.ChannelID, resp.Text)
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: resp.Text, Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 	}
+
+	return
 }
 
 func (b *BotState) onVoiceStateUpdate(s *discordgo.Session, v *discordgo.VoiceStateUpdate) {
