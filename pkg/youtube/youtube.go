@@ -32,9 +32,14 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 		// Handle the error
 	}
 
-	log.Println("Parse download URL...")
-	format := videoInfo.Formats.Extremes(ytdl.FormatAudioBitrateKey, true)[0]
-	downloadURL, err := videoInfo.GetDownloadURL(format)
+	log.Printf("Parse download URL... %s\n", url)
+	formats := videoInfo.Formats.Extremes(ytdl.FormatAudioBitrateKey, true)
+
+	if len(formats) < 1 {
+		return errors.New("Issue with format of video.")
+	}
+
+	downloadURL, err := videoInfo.GetDownloadURL(formats[0])
 	if err != nil {
 		// Handle the error
 	}

@@ -250,6 +250,10 @@ func (r Root) Children() []Root {
 
 // Attrs returns a map containing all attributes
 func (r Root) Attrs() map[string]string {
+	if r.Pointer == nil {
+		return nil
+	}
+
 	if r.Pointer.Type != html.ElementNode {
 		if debug {
 			panic("Not an ElementNode")
@@ -264,7 +268,11 @@ func (r Root) Attrs() map[string]string {
 
 // Text returns the string inside a non-nested element
 func (r Root) Text() string {
-	k := r.Pointer.FirstChild
+	var k *html.Node
+
+	if r.Pointer != nil {
+		k = r.Pointer.FirstChild
+	}
 checkNode:
 	if k != nil && k.Type != html.TextNode {
 		k = k.NextSibling
