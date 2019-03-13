@@ -6,14 +6,15 @@ import (
 	"errors"
 )
 
-func GetChannel(s *discordgo.Session, id string) *discordgo.Channel {
+func GetChannel(s *discordgo.Session, id string) (*discordgo.Channel, error) {
 	channel, err := s.Channel(id)
 
 	if err != nil {
 		log.Errorln(err.Error())
+		return nil, err
 	}
 
-	return channel
+	return channel, nil
 }
 
 func GetUser(s *discordgo.Session, id string) *discordgo.User {

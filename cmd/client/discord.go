@@ -105,7 +105,11 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		log.Infof("Joining channel: %s", m.ChannelID)
 
 		//user_meta := discord.GetUser(s, m.Author.ID)
-		channel_meta := discord.GetChannel(s, m.ChannelID)
+		channel_meta, err := discord.GetChannel(s, m.ChannelID)
+		if err != nil {
+			log.Infof("Could not find channel...", m.ChannelID)
+		}
+
 		guild_meta := discord.GetGuild(s, channel_meta.GuildID)
 
 		var channel_id string
@@ -170,7 +174,10 @@ func (b *BotState) onVoiceStateUpdate(s *discordgo.Session, v *discordgo.VoiceSt
 
 	log.Infof("VoiceStateUpdate received: %s, %s, %s\n", v.ChannelID, v.UserID, v.SessionID)
 
-	channel_meta := discord.GetChannel(s, v.ChannelID)
+	channel_meta, err := discord.GetChannel(s, v.ChannelID)
+	if err != nil {
+		return
+	}
 
 	log.Infof("Channel information: %s, %s, %s\n", channel_meta.ID, channel_meta.Name, channel_meta.ParentID)
 }
