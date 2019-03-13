@@ -102,7 +102,8 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.HasPrefix(m.Content, "!play") {
-		log.Infof("Joining channel: %s", m.ChannelID)
+
+		log.Infof("Playing song...")
 
 		//user_meta := discord.GetUser(s, m.Author.ID)
 		channel_meta, err := discord.GetChannel(s, m.ChannelID)
@@ -128,6 +129,7 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		query := strings.TrimPrefix(m.Content, "!play")
 
+		log.Infof("Joining channel: %s", m.ChannelID)
 		s.ChannelVoiceJoin(channel_meta.GuildID, channel_id, false, false)
 
 		openchannels := s.VoiceConnections
@@ -143,7 +145,7 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 				log.Infof("Starting song...")
 				err := b.Youtube.PlayYoutubeVideo(channel, fmt.Sprintf(youtube_url, results[0].Url))
 				if err != nil {
-					s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Voice stream is busy...", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+					s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: err.Error(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 					return
 				}
 				log.Infof("Finishing song...")
@@ -173,6 +175,59 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		b.Youtube.OpenStreams[channel_id].SetPaused(true)
+		return
+	}
+
+	if strings.HasPrefix(m.Content, "!unpause") {
+
+		log.Infof("Attempting to restart song...")
+
+		channel_meta, err := discord.GetChannel(s, m.ChannelID)
+		if err != nil {
+			log.Infof("Could not find channel...", m.ChannelID)
+		}
+
+		guild_meta := discord.GetGuild(s, channel_meta.GuildID)
+
+		var channel_id string
+
+		for _, people := range guild_meta.VoiceStates {
+			if m.Author.ID == people.UserID {
+				channel_id = people.ChannelID
+			}
+		}
+
+		b.Youtube.OpenStreams[channel_id].SetPaused(false)
+		return
+	}
+
+	if strings.HasPrefix(m.Content, "!next") {
+
+		log.Infof("Attempting to skip song...")
+
+		channel_meta, err := discord.GetChannel(s, m.ChannelID)
+		if err != nil {
+			log.Infof("Could not find channel...", m.ChannelID)
+		}
+
+		guild_meta := discord.GetGuild(s, channel_meta.GuildID)
+
+		var channel_id string
+
+		for _, people := range guild_meta.VoiceStates {
+			if m.Author.ID == people.UserID {
+				channel_id = people.ChannelID
+			}
+		}
+
+		b.Youtube.OpenStreams[channel_id].End()
+		return
+	}
+
+	if strings.HasPrefix(m.Content, "!queue") {
+
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: b.Youtube.GetQueue(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+		return
 	}
 
 	if strings.HasPrefix(m.Content, "!") {
@@ -197,7 +252,7 @@ func (b *BotState) onVoiceStateUpdate(s *discordgo.Session, v *discordgo.VoiceSt
 	log.Infof("VoiceStateUpdate received: %s, %s, %s\n", v.ChannelID, v.UserID, v.SessionID)
 
 	channel_meta, err := discord.GetChannel(s, v.ChannelID)
-	if err != nil {
+	if err != nil || channel_meta == nil {
 		return
 	}
 

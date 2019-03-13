@@ -7,17 +7,22 @@ import (
 	"io"
 	"log"
 	"errors"
+	"fmt"
 )
 
 type YoutubeService struct {
 	RunningConnections map[string]bool
 	OpenStreams map[string]*dca.StreamingSession
+	Queue []string
 }
+
+const YOUTUBE_URL = "https://www.youtube.com%s"
 
 func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnection, url string) error {
 
 	if svc.RunningConnections[connection.ChannelID] == true {
-		return errors.New("Alreadying playing a video")
+		svc.Queue = append(svc.Queue, url)
+		return errors.New("Alreadying playing a video, queuing "+url)
 	} else {
 		svc.RunningConnections[connection.ChannelID] = true
 	}
@@ -66,9 +71,27 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 	}
 
 	svc.RunningConnections[connection.ChannelID] = false
+
+	if len(svc.Queue) > 0 {
+		pop := svc.Queue[0]
+		svc.Queue = svc.Queue[1:]
+		svc.PlayYoutubeVideo(connection, pop)
+	}
+
 	return nil
 }
 
+func (svc *YoutubeService) GetQueue() string {
+
+	output := "\nQueued Songs:\n"
+
+	for index, item := range svc.Queue {
+		output = output + fmt.Sprintf("%d. %s\n", index, item)
+	}
+
+	return output
+}
+
 func NewYoutubeService() *YoutubeService {
-	return &YoutubeService{make(map[string]bool, 5), make(map[string]*dca.StreamingSession, 5)}
+	return &YoutubeService{make(map[string]bool, 5), make(map[string]*dca.StreamingSession, 5), make([]string, 0)}
 }

@@ -29,6 +29,7 @@ type StreamingSession struct {
 	finished bool
 	running  bool
 	err      error // If an error occured and we had to stop
+	stop 	bool
 }
 
 // Creates a new stream from an Opusreader.
@@ -40,6 +41,7 @@ func NewStream(source OpusReader, vc *discordgo.VoiceConnection, done chan error
 		source: source,
 		vc:     vc,
 		done:   done,
+		stop: false,
 	}
 
 	go session.stream()
@@ -71,6 +73,13 @@ func (s *StreamingSession) stream() {
 			return
 		}
 		s.Unlock()
+
+		if s.stop {
+			go func() {
+				s.done <- ErrVoiceConnClosed
+			}()
+			break
+		}
 
 		err := s.readNext()
 		if err != nil {
@@ -181,4 +190,8 @@ func (s *StreamingSession) Paused() bool {
 	s.Unlock()
 
 	return p
+}
+
+func (s *StreamingSession) End() {
+	s.stop = true
 }
