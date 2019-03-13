@@ -11,6 +11,7 @@ import (
 
 type YoutubeService struct {
 	RunningConnections map[string]bool
+	OpenStreams map[string]*dca.StreamingSession
 }
 
 func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnection, url string) error {
@@ -54,7 +55,11 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 	done := make(chan error)
 
 	log.Println("Starting youtube stream...")
-	dca.NewStream(encodingSession, connection, done)
+	instance := dca.NewStream(encodingSession, connection, done)
+	svc.OpenStreams[connection.ChannelID] = instance
+
+	instance.Finished()
+
 	err = <- done
 	if err != nil && err != io.EOF {
 		// Handle the error
@@ -65,5 +70,5 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 }
 
 func NewYoutubeService() *YoutubeService {
-	return &YoutubeService{make(map[string]bool, 5)}
+	return &YoutubeService{make(map[string]bool, 5), make(map[string]*dca.StreamingSession, 5)}
 }

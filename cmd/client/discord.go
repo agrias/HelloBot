@@ -153,6 +153,28 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if strings.HasPrefix(m.Content, "!pause") {
+
+		log.Infof("Attempting to stop song...")
+
+		channel_meta, err := discord.GetChannel(s, m.ChannelID)
+		if err != nil {
+			log.Infof("Could not find channel...", m.ChannelID)
+		}
+
+		guild_meta := discord.GetGuild(s, channel_meta.GuildID)
+
+		var channel_id string
+
+		for _, people := range guild_meta.VoiceStates {
+			if m.Author.ID == people.UserID {
+				channel_id = people.ChannelID
+			}
+		}
+
+		b.Youtube.OpenStreams[channel_id].SetPaused(true)
+	}
+
 	if strings.HasPrefix(m.Content, "!") {
 		user_meta := discord.GetUser(s, m.Author.ID)
 
