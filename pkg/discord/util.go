@@ -42,7 +42,12 @@ func GetUserVoiceChannelInGuild(s *discordgo.Session, user_id string, guild_id s
 
 	for _, v := range guild.VoiceStates {
 		if v.UserID == user_id {
-			return GetChannel(s, v.ChannelID), nil
+			channel, err := GetChannel(s, v.ChannelID)
+			if err != nil {
+				return nil, err
+			}
+
+			return channel, nil
 		}
 	}
 
