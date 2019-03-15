@@ -230,7 +230,9 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Infof("Could not find channel...", m.ChannelID)
 		}
 
+		/*
 		guild_meta := discord.GetGuild(s, channel_meta.GuildID)
+
 
 		var channel_id string
 
@@ -239,8 +241,9 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 				channel_id = people.ChannelID
 			}
 		}
+		*/
 
-		b.Youtube.OpenStreams[channel_id].End()
+		b.Youtube.OpenStreams[channel_meta.GuildID].End()
 		return
 	}
 
