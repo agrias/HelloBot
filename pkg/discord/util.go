@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 	"errors"
+	"fmt"
 )
 
 // often returns a 404
@@ -57,4 +58,8 @@ func GetUserVoiceChannelInGuild(s *discordgo.Session, user_id string, guild_id s
 	}
 
 	return nil, errors.New("User not found in VoiceChannel")
+}
+
+func FormatHyperlink(url string, title string) string {
+	return fmt.Sprintf("[%s](%s)", title, url)
 }

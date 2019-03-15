@@ -142,7 +142,8 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		results := youtube.GetVideosFromSearch(query)
 
-		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Playing \""+results[0].Title+"\"...", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+		//s.ChannelMessageSend(m.ChannelID, "Playing... "+discord.FormatHyperlink(results[0].Url, results[0].Title)+"...")
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Playing... "+discord.FormatHyperlink(fmt.Sprintf(youtube_url, results[0].Url), results[0].Title)+"...", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 /*
 		voicechannel := openchannels[guild_meta.ID]
 
