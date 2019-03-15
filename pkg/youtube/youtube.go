@@ -13,29 +13,43 @@ import (
 type YoutubeService struct {
 	RunningConnections map[string]bool
 	OpenStreams map[string]*dca.StreamingSession
-	Queue []string
+	Queues map[string][]*VideoQueueData
+	Volume int
+}
+
+type VideoQueueData struct {
+	Url string
+	Title string
 }
 
 const YOUTUBE_URL = "https://www.youtube.com%s"
 
-func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnection, url string) error {
+func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnection, url string, title string) error {
 
-	if svc.RunningConnections[connection.ChannelID] == true {
-		svc.Queue = append(svc.Queue, url)
+	// init map of queues
+	if svc.Queues[connection.GuildID] == nil {
+		svc.Queues[connection.GuildID] = make([]*VideoQueueData, 0)
+	}
+
+	// init running connections map
+	if svc.RunningConnections[connection.GuildID] == true {
+		svc.Queues[connection.GuildID] = append(svc.Queues[connection.GuildID], &VideoQueueData{url, title})
 		return errors.New("Alreadying playing a video, queuing "+url)
 	} else {
-		svc.RunningConnections[connection.ChannelID] = true
+		svc.RunningConnections[connection.GuildID] = true
 	}
 
 	options := dca.StdEncodeOptions
 	options.RawOutput = true
 	options.Bitrate = 96
 	options.Application = "lowdelay"
+	options.Volume = svc.Volume
 
 	log.Println("Getting video information...")
 	videoInfo, err := ytdl.GetVideoInfo(url)
 	if err != nil {
 		// Handle the error
+		return errors.New("Issue playing found video, please try again...")
 	}
 
 	log.Printf("Parse download URL... %s\n", url)
@@ -61,7 +75,7 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 
 	log.Println("Starting youtube stream...")
 	instance := dca.NewStream(encodingSession, connection, done)
-	svc.OpenStreams[connection.ChannelID] = instance
+	svc.OpenStreams[connection.GuildID] = instance
 
 	instance.Finished()
 
@@ -70,28 +84,37 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 		// Handle the error
 	}
 
-	svc.RunningConnections[connection.ChannelID] = false
+	svc.RunningConnections[connection.GuildID] = false
 
-	if len(svc.Queue) > 0 {
-		pop := svc.Queue[0]
-		svc.Queue = svc.Queue[1:]
-		svc.PlayYoutubeVideo(connection, pop)
+	if len(svc.Queues[connection.GuildID]) > 0 {
+		pop := svc.Queues[connection.GuildID][0]
+		svc.Queues[connection.GuildID] = svc.Queues[connection.GuildID][1:]
+		svc.PlayYoutubeVideo(connection, pop.Url, pop.Title)
 	}
 
 	return nil
 }
 
-func (svc *YoutubeService) GetQueue() string {
+func (svc *YoutubeService) GetQueue(guild string) string {
 
 	output := "\nQueued Songs:\n"
 
-	for index, item := range svc.Queue {
-		output = output + fmt.Sprintf("%d. %s\n", index, item)
+	for index, item := range svc.Queues[guild] {
+		output = output + fmt.Sprintf("%d. %s\n", index+1, item.Title)
 	}
 
 	return output
 }
 
+func (svc *YoutubeService) ClearQueue(guild string) {
+
+	svc.Queues[guild] = make([]*VideoQueueData, 0)
+}
+
+func (svc *YoutubeService) SetVolume(volume int) {
+	svc.Volume = volume
+}
+
 func NewYoutubeService() *YoutubeService {
-	return &YoutubeService{make(map[string]bool, 5), make(map[string]*dca.StreamingSession, 5), make([]string, 0)}
+	return &YoutubeService{make(map[string]bool, 5), make(map[string]*dca.StreamingSession, 5), make(map[string][]*VideoQueueData, 0), 100}
 }

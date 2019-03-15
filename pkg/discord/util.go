@@ -6,15 +6,20 @@ import (
 	"errors"
 )
 
+// often returns a 404
 func GetChannel(s *discordgo.Session, id string) (*discordgo.Channel, error) {
-	channel, err := s.Channel(id)
 
-	if err != nil {
-		log.Errorln(err.Error())
-		return nil, err
+	for retry := 0; retry <= 3; retry++ {
+		channel, err := s.Channel(id)
+		if err != nil && retry == 3 {
+			log.Errorf("Issue finding channel for %s: %s", id, err.Error())
+			return nil, err
+		} else {
+			return channel, nil
+		}
 	}
 
-	return channel, nil
+	return nil, errors.New("This should never happen")
 }
 
 func GetUser(s *discordgo.Session, id string) *discordgo.User {

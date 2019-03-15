@@ -130,27 +130,34 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		query := strings.TrimPrefix(m.Content, "!play")
 
 		log.Infof("Joining channel: %s", m.ChannelID)
-		s.ChannelVoiceJoin(channel_meta.GuildID, channel_id, false, false)
+		voicechannel, err := s.ChannelVoiceJoin(channel_meta.GuildID, channel_id, false, false)
+		if err != nil {
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: err.Error(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+			return
+		}
 
-		openchannels := s.VoiceConnections
+		//openchannels := s.VoiceConnections
 
 		youtube_url := "https://www.youtube.com%s"
 
 		results := youtube.GetVideosFromSearch(query)
 
 		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Playing \""+results[0].Title+"\"...", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+/*
+		voicechannel := openchannels[guild_meta.ID]
 
-		for _, channel := range openchannels {
-			if channel.ChannelID == channel_id {
-				log.Infof("Starting song...")
-				err := b.Youtube.PlayYoutubeVideo(channel, fmt.Sprintf(youtube_url, results[0].Url))
-				if err != nil {
-					s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: err.Error(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
-					return
-				}
-				log.Infof("Finishing song...")
-			}
+		if voicechannel == nil {
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: err.Error(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+			return
 		}
+*/
+		log.Infof("Starting song...")
+		err = b.Youtube.PlayYoutubeVideo(voicechannel, fmt.Sprintf(youtube_url, results[0].Url), results[0].Title)
+		if err != nil {
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: err.Error(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+			return
+		}
+		log.Infof("Finishing song...")
 
 		return
 	}
@@ -175,6 +182,19 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		b.Youtube.OpenStreams[channel_id].SetPaused(true)
+		return
+	}
+
+	if strings.HasPrefix(m.Content, "!clear") {
+
+		channel_meta, err := discord.GetChannel(s, m.ChannelID)
+		if err != nil {
+			log.Infof("Could not find channel...", m.ChannelID)
+		}
+
+		b.Youtube.ClearQueue(channel_meta.GuildID)
+
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Queue cleared.", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 		return
 	}
 
@@ -226,7 +246,21 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if strings.HasPrefix(m.Content, "!queue") {
 
-		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: b.Youtube.GetQueue(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+		openchannels := s.VoiceConnections
+
+		channel_meta, err := discord.GetChannel(s, m.ChannelID)
+		if err != nil {
+			log.Infof("Could not find channel...", m.ChannelID)
+		}
+
+		voicechannel := openchannels[channel_meta.GuildID]
+
+		if voicechannel == nil {
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Nothing has been queued.", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+			return
+		}
+
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: b.Youtube.GetQueue(channel_meta.GuildID), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 		return
 	}
 
