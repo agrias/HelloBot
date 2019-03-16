@@ -215,7 +215,7 @@ func (e *EncodeSession) run() {
 		"-threads", strconv.Itoa(e.options.Threads),
 	}
 
-	fmt.Println("ffmpeg args: "+string(args))
+	fmt.Println("ffmpeg args: "+fmt.Sprintf("%v", args))
 
 	if e.options.AudioFilter != "" {
 		// Lit af
