@@ -83,6 +83,8 @@ func (s *StreamingSession) stream() {
 
 		err := s.readNext()
 		if err != nil {
+			fmt.Println("Song finished with... "+err.Error())
+
 			s.Lock()
 
 			s.finished = true
@@ -114,6 +116,7 @@ func (s *StreamingSession) readNext() error {
 	// This will attempt to send on the channel before the timeout, which is 1s
 	select {
 	case <-timeOut:
+		fmt.Println("Time out")
 		return ErrVoiceConnClosed
 	case s.vc.OpusSend <- opus:
 	}

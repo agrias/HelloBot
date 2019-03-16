@@ -129,10 +129,11 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		query := strings.TrimPrefix(m.Content, "!play")
 
-		log.Infof("Joining channel: %s", m.ChannelID)
+		log.Infof("Joining channel: %s", channel_id)
 		voicechannel, err := s.ChannelVoiceJoin(channel_meta.GuildID, channel_id, false, false)
 		if err != nil {
-			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: err.Error(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+			log.Errorf("Error joining channel... %s", err.Error())
+			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "This command must be done from a voice channel!", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 			return
 		}
 
