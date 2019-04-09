@@ -83,7 +83,6 @@ func (s *StreamingSession) stream() {
 		}
 
 		err := s.readNext()
-		fmt.Println("wokring....")
 		if err != nil {
 			//time.Sleep(time.Second*60)
 			fmt.Println("Song finished with... "+err.Error())
@@ -125,8 +124,6 @@ func (s *StreamingSession) readNext() error {
 	}
 
 	s.Lock()
-
-	fmt.Println(s.framesSent)
 
 	s.framesSent++
 	s.Unlock()
