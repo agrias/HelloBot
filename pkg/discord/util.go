@@ -4,16 +4,23 @@ import (
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 	"errors"
+	"fmt"
 )
 
-func GetChannel(s *discordgo.Session, id string) *discordgo.Channel {
-	channel, err := s.Channel(id)
+// often returns a 404
+func GetChannel(s *discordgo.Session, id string) (*discordgo.Channel, error) {
 
-	if err != nil {
-		log.Errorln(err.Error())
+	for retry := 0; retry <= 3; retry++ {
+		channel, err := s.Channel(id)
+		if err != nil && retry == 3 {
+			log.Errorf("Issue finding channel for %s: %s", id, err.Error())
+			return nil, err
+		} else {
+			return channel, nil
+		}
 	}
 
-	return channel
+	return nil, errors.New("This should never happen")
 }
 
 func GetUser(s *discordgo.Session, id string) *discordgo.User {
@@ -41,9 +48,18 @@ func GetUserVoiceChannelInGuild(s *discordgo.Session, user_id string, guild_id s
 
 	for _, v := range guild.VoiceStates {
 		if v.UserID == user_id {
-			return GetChannel(s, v.ChannelID), nil
+			channel, err := GetChannel(s, v.ChannelID)
+			if err != nil {
+				return nil, err
+			}
+
+			return channel, nil
 		}
 	}
 
 	return nil, errors.New("User not found in VoiceChannel")
+}
+
+func FormatHyperlink(url string, title string) string {
+	return fmt.Sprintf("[%s](%s)", title, url)
 }

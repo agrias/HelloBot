@@ -6,6 +6,7 @@ import (
 	"io"
 	"sync"
 	"time"
+	"fmt"
 )
 
 var (
@@ -29,6 +30,7 @@ type StreamingSession struct {
 	finished bool
 	running  bool
 	err      error // If an error occured and we had to stop
+	stop 	bool
 }
 
 // Creates a new stream from an Opusreader.
@@ -40,6 +42,7 @@ func NewStream(source OpusReader, vc *discordgo.VoiceConnection, done chan error
 		source: source,
 		vc:     vc,
 		done:   done,
+		stop: false,
 	}
 
 	go session.stream()
@@ -72,8 +75,18 @@ func (s *StreamingSession) stream() {
 		}
 		s.Unlock()
 
+		if s.stop {
+			go func() {
+				s.done <- ErrVoiceConnClosed
+			}()
+			break
+		}
+
 		err := s.readNext()
 		if err != nil {
+			//time.Sleep(time.Second*60)
+			fmt.Println("Song finished with... "+err.Error())
+
 			s.Lock()
 
 			s.finished = true
@@ -100,16 +113,18 @@ func (s *StreamingSession) readNext() error {
 	}
 
 	// Timeout after 100ms (Maybe this needs to be changed?)
-	timeOut := time.After(time.Second)
+	timeOut := time.After(time.Millisecond*100)
 
 	// This will attempt to send on the channel before the timeout, which is 1s
 	select {
 	case <-timeOut:
+		fmt.Println("Time out")
 		return ErrVoiceConnClosed
 	case s.vc.OpusSend <- opus:
 	}
 
 	s.Lock()
+
 	s.framesSent++
 	s.Unlock()
 
@@ -181,4 +196,8 @@ func (s *StreamingSession) Paused() bool {
 	s.Unlock()
 
 	return p
+}
+
+func (s *StreamingSession) End() {
+	s.stop = true
 }
