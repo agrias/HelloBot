@@ -8,6 +8,9 @@ import (
 	"log"
 	"errors"
 	"fmt"
+	"os"
+	"time"
+	"github.com/spf13/viper"
 )
 
 type YoutubeService struct {
@@ -52,6 +55,11 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 		return errors.New("Issue playing found video, please try again...")
 	}
 
+	if videoInfo.Duration > time.Hour {
+
+		return errors.New("I currently do not support music longer than one hour.")
+	}
+
 	log.Printf("Parse download URL... %s\n", url)
 	formats := videoInfo.Formats.Extremes(ytdl.FormatAudioBitrateKey, true)
 
@@ -59,13 +67,20 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 		return errors.New("Issue with format of video.")
 	}
 
-	downloadURL, err := videoInfo.GetDownloadURL(formats[0])
+	//downloadURL, err := videoInfo.GetDownloadURL(formats[0])
 	if err != nil {
 		// Handle the error
 	}
 
+	filepath := viper.GetString("tmpdir")
+	filename := filepath+connection.GuildID+".mp4"
+
+	file, _ := os.Create(filename)
+	defer file.Close()
+	videoInfo.Download(videoInfo.Formats[0], file)
+
 	log.Println("Encoding file/url")
-	encodingSession, err := dca.EncodeFile(downloadURL.String(), options)
+	encodingSession, err := dca.EncodeFile(filename, options)
 	if err != nil {
 		// Handle the error
 	}

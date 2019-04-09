@@ -83,7 +83,9 @@ func (s *StreamingSession) stream() {
 		}
 
 		err := s.readNext()
+		fmt.Println("wokring....")
 		if err != nil {
+			//time.Sleep(time.Second*60)
 			fmt.Println("Song finished with... "+err.Error())
 
 			s.Lock()
@@ -112,7 +114,7 @@ func (s *StreamingSession) readNext() error {
 	}
 
 	// Timeout after 100ms (Maybe this needs to be changed?)
-	timeOut := time.After(time.Second)
+	timeOut := time.After(time.Millisecond*100)
 
 	// This will attempt to send on the channel before the timeout, which is 1s
 	select {
@@ -123,6 +125,9 @@ func (s *StreamingSession) readNext() error {
 	}
 
 	s.Lock()
+
+	fmt.Println(s.framesSent)
+
 	s.framesSent++
 	s.Unlock()
 

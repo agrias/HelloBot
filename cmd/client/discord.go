@@ -245,7 +245,11 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		*/
 
-		b.Youtube.OpenStreams[channel_meta.GuildID].End()
+		stop := b.Youtube.OpenStreams[channel_meta.GuildID]
+		if stop != nil {
+			stop.End()
+		}
+
 		return
 	}
 
