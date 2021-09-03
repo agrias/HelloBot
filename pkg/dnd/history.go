@@ -1,7 +1,7 @@
 package dnd
 
 import (
-	"YmirBot/cmd/db"
+	"HelloBot/cmd/db"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
 	"math/big"

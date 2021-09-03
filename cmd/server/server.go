@@ -1,16 +1,16 @@
 package server
 
 import (
-	"YmirBot/proto"
+	"HelloBot/proto"
 	"context"
 	"net"
 	"fmt"
 	"google.golang.org/grpc"
 	log "github.com/sirupsen/logrus"
-	"YmirBot/cmd/db"
+	"HelloBot/cmd/db"
 	"strings"
-	"YmirBot/pkg/dnd"
-	"YmirBot/cmd/feature"
+	"HelloBot/pkg/dnd"
+	"HelloBot/cmd/feature"
 )
 
 /*

@@ -1,7 +1,7 @@
 package feature
 
 import (
-	"YmirBot/proto"
+	"HelloBot/proto"
 	"strings"
 )
 

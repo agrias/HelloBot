@@ -1,9 +1,9 @@
 package app
 
 import (
-	"YmirBot/proto"
-	"YmirBot/cmd/server"
-	"YmirBot/cmd/client"
+	"HelloBot/cmd/client"
+	"HelloBot/cmd/server"
+	"HelloBot/proto"
 )
 
 type Bot interface {
@@ -24,6 +24,6 @@ func (b *ymirBot) Start() {
 	}
 }
 
-func NewYmirBot() Bot {
+func NewHelloBot() Bot {
 	return &ymirBot{}
 }

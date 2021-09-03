@@ -6,7 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"strings"
 	"strconv"
-	"YmirBot/cmd/db"
+	"HelloBot/cmd/db"
 )
 
 type Dice struct {

@@ -1,8 +1,8 @@
 package dnd
 
 import (
-	"YmirBot/cmd/db"
-	"YmirBot/proto"
+	"HelloBot/cmd/db"
+	"HelloBot/proto"
 	"math/big"
 	"strings"
 )

@@ -1,16 +1,15 @@
 package youtube
 
 import (
-	"github.com/jonas747/dca"
-	"github.com/rylio/ytdl"
-	"github.com/bwmarrin/discordgo"
-	"io"
-	"log"
 	"errors"
 	"fmt"
-	"os"
-	"time"
+	"github.com/bwmarrin/discordgo"
+	"github.com/jonas747/dca"
+	"github.com/kkdai/youtube/v2"
 	"github.com/spf13/viper"
+	"io"
+	"log"
+	"os"
 )
 
 type YoutubeService struct {
@@ -49,35 +48,30 @@ func (svc *YoutubeService) PlayYoutubeVideo(connection *discordgo.VoiceConnectio
 	options.Volume = svc.Volume
 
 	log.Println("Getting video information...")
-	videoInfo, err := ytdl.GetVideoInfo(url)
-	if err != nil {
-		// Handle the error
-		return errors.New("Issue playing found video, please try again...")
-	}
-
-	if videoInfo.Duration > time.Hour {
-
-		return errors.New("I currently do not support music longer than one hour.")
-	}
-
-	log.Printf("Parse download URL... %s\n", url)
-	formats := videoInfo.Formats.Extremes(ytdl.FormatAudioBitrateKey, true)
-
-	if len(formats) < 1 {
-		return errors.New("Issue with format of video.")
-	}
-
-	//downloadURL, err := videoInfo.GetDownloadURL(formats[0])
-	if err != nil {
-		// Handle the error
-	}
 
 	filepath := viper.GetString("tmpdir")
 	filename := filepath+connection.GuildID+".mp4"
 
 	file, _ := os.Create(filename)
 	defer file.Close()
-	videoInfo.Download(videoInfo.Formats[0], file)
+	//videoInfo.Download(videoInfo.Formats[0], file)
+
+	client := youtube.Client{}
+
+	video, err := client.GetVideo(url)
+	if err != nil {
+		panic(err)
+	}
+
+	stream, _, err := client.GetStream(video, &video.Formats[0])
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = io.Copy(file, stream)
+	if err != nil {
+		panic(err)
+	}
 
 	log.Println("Encoding file/url")
 	encodingSession, err := dca.EncodeFile(filename, options)

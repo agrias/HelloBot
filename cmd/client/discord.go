@@ -1,20 +1,21 @@
 package client
 
 import (
-	"github.com/bwmarrin/discordgo"
-	"os"
-	"syscall"
-	"os/signal"
-	"YmirBot/proto"
-	"google.golang.org/grpc"
+	"HelloBot/pkg/discord"
+	"HelloBot/pkg/nicehash"
+	"HelloBot/pkg/youtube"
+	"HelloBot/proto"
 	"context"
+	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
-	"strings"
-	"YmirBot/pkg/discord"
 	"github.com/spf13/viper"
-	"YmirBot/pkg/youtube"
-	"fmt"
+	"google.golang.org/grpc"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 )
 
 const DND_CHANNEL = 328682308054024193
@@ -34,7 +35,7 @@ func NewDiscordBot() YmirClient {
 	context := &discordBotContext{}
 	context.InitializeEnv()
 
-	discord, err := discordgo.New("Bot "+viper.GetString("token"))
+	discord, err := discordgo.New("Bot ")
 	if (err != nil) {
 		log.Fatalln(err)
 		panic(err)
@@ -101,6 +102,20 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if strings.HasPrefix(m.Content, "!balance") {
+		old_balance := .00100562
+		curr_balance := .007361
+
+		now_balance := nicehash.GetBalance()
+		output := now_balance - curr_balance - old_balance
+
+		historical := now_balance - old_balance
+
+		log.Infof("Nicehash: %f\n", output)
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("BTC Balance: %f ($%f)\nHistorical Balance: %f ($%f)", output, output*nicehash.GetPrice(), historical, historical*nicehash.GetPrice()))
+		return
+	}
+
 	if strings.HasPrefix(m.Content, "!play") {
 
 		log.Infof("Playing song...")
@@ -111,15 +126,9 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Infof("Could not find channel...", m.ChannelID)
 		}
 
-		guild_meta := discord.GetGuild(s, channel_meta.GuildID)
+		// guild_meta := discord.GetGuild(s, channel_meta.GuildID)
 
-		var channel_id string
-
-		for _, people := range guild_meta.VoiceStates {
-			if m.Author.ID == people.UserID {
-				channel_id = people.ChannelID
-			}
-		}
+		channel_id := "883469626850312253"
 
 		/*
 		for k, v := range s.VoiceConnections {
@@ -127,7 +136,7 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		*/
 
-		query := strings.TrimPrefix(m.Content, "!play")
+		strings.TrimPrefix(m.Content, "!play")
 
 		log.Infof("Joining channel: %s", channel_id)
 		voicechannel, err := s.ChannelVoiceJoin(channel_meta.GuildID, channel_id, false, false)
@@ -139,12 +148,13 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		//openchannels := s.VoiceConnections
 
-		youtube_url := "https://www.youtube.com%s"
+		//youtube_url := "https://www.youtube.com%s"
 
-		results := youtube.GetVideosFromSearch(query)
+		//results := youtube.GetVideosFromSearch(query)
 
 		//s.ChannelMessageSend(m.ChannelID, "Playing... "+discord.FormatHyperlink(results[0].Url, results[0].Title)+"...")
-		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Playing... "+discord.FormatHyperlink(fmt.Sprintf(youtube_url, results[0].Url), results[0].Title)+"...", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+		//s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Playing... "+discord.FormatHyperlink(fmt.Sprintf(youtube_url, results[0].Url), results[0].Title)+"...", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: "Playing song", Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 /*
 		voicechannel := openchannels[guild_meta.ID]
 
@@ -154,7 +164,7 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 */
 		log.Infof("Starting song...")
-		err = b.Youtube.PlayYoutubeVideo(voicechannel, fmt.Sprintf(youtube_url, results[0].Url), results[0].Title)
+		err = b.Youtube.PlayYoutubeVideo(voicechannel, "https://www.youtube.com/watch?v=rvrZJ5C_Nwg", "Blah")
 		if err != nil {
 			s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Description: err.Error(), Author: &discordgo.MessageEmbedAuthor{Name: "@"+m.Author.Username}})
 			return
@@ -247,7 +257,7 @@ func (b *BotState) onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		stop := b.Youtube.OpenStreams[channel_meta.GuildID]
 		if stop != nil {
-			stop.End()
+			//stop.End()
 		}
 
 		return

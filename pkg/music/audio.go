@@ -12,7 +12,7 @@ import (
 )
 
 func GetAudioBytes() (*mp3.Decoder, error) {
-	f, err := os.Open("G:\\dev\\GOPATH\\src\\YmirBot\\pkg\\music\\hero.mp3")
+	f, err := os.Open("G:\\dev\\GOPATH\\src\\HelloBot\\pkg\\music\\hero.mp3")
 	if err != nil {
 		return nil, err
 	}

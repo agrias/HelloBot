@@ -43,7 +43,7 @@ func ParseQueryResults(html string) []*QueryResult {
 
 	doc := soup.HTMLParse(html)
 
-	//fmt.Println("Text: "+html)
+	fmt.Println("Text: "+html)
 
 	links := doc.Find("div", "id", "results").FindAll("div", "class", "yt-lockup-content")
 

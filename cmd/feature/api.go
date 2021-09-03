@@ -1,6 +1,6 @@
 package feature
 
-import "YmirBot/proto"
+import "HelloBot/proto"
 
 type FeatureHandler interface {
 	Filter(string) bool

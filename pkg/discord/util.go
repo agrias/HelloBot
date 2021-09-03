@@ -1,10 +1,10 @@
 package discord
 
 import (
-	"github.com/bwmarrin/discordgo"
-	log "github.com/sirupsen/logrus"
 	"errors"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 )
 
 // often returns a 404
@@ -58,6 +58,16 @@ func GetUserVoiceChannelInGuild(s *discordgo.Session, user_id string, guild_id s
 	}
 
 	return nil, errors.New("User not found in VoiceChannel")
+}
+
+func GetUserVoiceChannel(s *discordgo.Session, user_id string, guild_id string) (string) {
+	voice_state, err := s.State.VoiceState(guild_id, user_id)
+
+	if err != nil {
+		log.Errorln(err.Error())
+	}
+
+	return voice_state.ChannelID
 }
 
 func FormatHyperlink(url string, title string) string {
